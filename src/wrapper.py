@@ -6,7 +6,8 @@ import repo
 
 
 def main():
-    datawrapper.load_data()
+    #datawrapper.load_data_mongo()
+    datawrapper.load_data_cassandra()
     
 
 def parseArgs():

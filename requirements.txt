@@ -1,3 +1,4 @@
 pymongo
 mongoengine
 simplejson
+cassandra-driver
