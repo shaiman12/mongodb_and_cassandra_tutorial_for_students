@@ -1,6 +1,5 @@
 import json
 import os
-from time import sleep
 from pymongo import MongoClient
 from cassandra.cluster import Cluster
 
@@ -57,9 +56,10 @@ def load_data_cassandra():
             ''',
             (data['track_id'],data['title'],data['artist'],data['timestamp'],helper(data['similars']), helper(data['tags']))
             )
-            break
+            
         
         session.shutdown()
+        clstr.shutdown()
 
 def helper(data):
     new_data = []
