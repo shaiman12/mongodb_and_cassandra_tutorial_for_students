@@ -20,6 +20,9 @@ tearDown_mac:
 	brew services stop mongod
 	brew services stop cassandra
 
+run:
+	venv/bin/python3 src/wrapper.py
+
 clean:
 	rm -rf venv
 	find -iname "*.pyc" -delete

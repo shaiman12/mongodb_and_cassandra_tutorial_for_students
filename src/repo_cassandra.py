@@ -10,8 +10,10 @@ def setup():
     clstr=Cluster()
     session = clstr.connect('msd')
 
-def get_similar_songs(title):
+def get_similar_songs():
     
+    title = input('Please input a song title (case-sensitive)\n> ')
+
     qry=f'''
     SELECT similars FROM msd.songs WHERE title = \'{title}\' ALLOW FILTERING;
     '''

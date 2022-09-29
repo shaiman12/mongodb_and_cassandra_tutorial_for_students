@@ -1,4 +1,5 @@
 from pymongo import MongoClient
+from tabulate import tabulate
 
 client,db,collection = None,None,None
 
@@ -11,7 +12,7 @@ def setup():
     db=client['MSD']
     collection = db['songs']
 
-def insert_data(data:dict):
+def insert_data():
     
-    id = collection.insert_one(data)
+    id = collection.insert_one()
     print('Data successfully inserted with id: ', id)
