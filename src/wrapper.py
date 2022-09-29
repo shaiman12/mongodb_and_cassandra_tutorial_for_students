@@ -5,14 +5,13 @@ import datawrapper as dw
 import repo_mongo as rm
 import repo_cassandra as rc
 from time import sleep
-from time import time
-from timeit import default_timer as timer
-from time import perf_counter
-import time
+
 import sys
+from time import process_time
 
 exit_codes = ['q', 'quit','exit','e', 'end']
 
+#TODO: Input other query options
 query_options = '''
 To exit this program, just type \'(q)uit\'\n
 Select any of the following queries (enter the number):
@@ -32,7 +31,6 @@ Select any of the following queries (enter the number):
 
 switch_module ={'1':rm, '2':rc}
 db_selected = None
-
 
 
 def main():
@@ -56,6 +54,10 @@ def main():
         dw.load_data_cassandra()
         rc.setup() 
   
+    #This dictionary maps between the database type the user selected
+    #and any query a user selects to run 
+    #TODO: Input other query function names
+
     switch_function ={'1':switch_module[db_selected].get_similar_songs,
                 '2':switch_module[db_selected].get_similar_songs,
                 '3':switch_module[db_selected].get_similar_songs,
@@ -71,15 +73,27 @@ def main():
 
     user_input = ''
     print(query_options)
+
+    #Start user-input loop
     while(True):
         user_input = str(input('> '))
+
+        #Break loop when user inputs a 'quit' command
         if(user_input in exit_codes):
             break
-        start = time.process_time()
+
+        
+        start_time = process_time()
+
+        #Call appropriate query function based on user's selection
         switch_function[user_input]()
-        elapsed_time = round(time.process_time() - start,4)
+
+        #Evaluate time taken to perform the query selected, for the DB type selected
+        elapsed_time = round(process_time() - start_time,4)
+
         print('Result returned in: ', elapsed_time, ' seconds')
         print('')
+
         input('Press the Enter key to clear output and reprint query options')
         os.system('cls||clear')
         print(query_options)
