@@ -28,7 +28,7 @@ def load_data_cassandra():
 
     if('msd' not in data):
         session = clstr.connect()
-        session.execute("create keyspace msd with replication={'class': 'SimpleStrategy', 'replication_factor' : 3};")
+        session.execute("create keyspace msd with replication={'class': 'SimpleStrategy', 'replication_factor' : 1};")
         print('Keyspace created: MSD')
         session.shutdown()
         session = clstr.connect('msd')

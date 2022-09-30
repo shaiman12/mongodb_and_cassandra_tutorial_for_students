@@ -86,7 +86,7 @@ def get_most_frequent_tags():
     for tagset in all_tags:
         tags = tagset['tags']
         for tag in tags:
-            name = tag[0]
+            name = tag[0].lower()
             if name in tag_dict.keys():
                 tag_dict[name] = tag_dict[name]+1
             else:
@@ -100,3 +100,6 @@ def get_most_frequent_tags():
         if count==10:
             break
     print(tabulate(table_print, headers=['Genre','Frequency'], tablefmt="github"))
+
+setup()
+get_most_frequent_tags()

@@ -15,7 +15,7 @@ exit_codes = ['q', 'quit','exit','e', 'end']
 query_options = '''
 To exit this program, just type \'(q)uit\'\n
 Select any of the following queries (enter the number):
-1)  Return selected record
+1)  Get all artists beginning with a letter
 2)  Delete certain record
 3)  Delete certain record
 4)  Delete certain record
@@ -42,7 +42,7 @@ def main():
                         'Enter 1 or 2\n> ')
     
     if(db_selected != '1' and db_selected != '2'):
-        sys.exit('Please select a DB to work with by inputing a 1 for MongoDB or 2 for Cassandra')
+        sys.exit('Please select a DB to work with by inputting a 1 for MongoDB or 2 for Cassandra')
     print('-----------------------------')
     
     if db_selected == '1':
@@ -58,8 +58,8 @@ def main():
     #and any query a user selects to run 
     #TODO: Input other query function names
 
-    switch_function ={'1':switch_module[db_selected].get_similar_songs,
-                '2':switch_module[db_selected].get_similar_songs,
+    switch_function ={'1':switch_module[db_selected].get_all_artists_beginning_with_letter,
+                '2':switch_module[db_selected].delete_record,
                 '3':switch_module[db_selected].get_similar_songs,
                 '4':switch_module[db_selected].get_similar_songs,
                 '5':switch_module[db_selected].get_similar_songs,
