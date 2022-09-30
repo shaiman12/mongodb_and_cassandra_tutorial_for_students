@@ -21,7 +21,7 @@ Select any of the following queries (enter the number):
 4)  NOT IMPLEMENTED YET
 5)  Delete all records from an artist
 6)  Get similar songs for track
-7)  NOT IMPLEMENTED YET
+7)  Average song title length
 8)  NOT IMPLEMENTED YET
 9)  Get top 10 most popular tags 
 10) NOT IMPLEMENTED YET
@@ -35,6 +35,11 @@ db_selected = None
 
 
 def main():
+
+    """Main method for program.
+    Runs all necessary front-end interaction with system and calls the relevant functions from
+    the data wrapper and repositories.
+    """
     
     global db_selected
     printWelcomeInformation()
@@ -65,7 +70,7 @@ def main():
                 '4':switch_module[db_selected].get_similar_songs,
                 '5':switch_module[db_selected].delete_record,
                 '6':switch_module[db_selected].get_similar_songs,
-                '7':switch_module[db_selected].get_similar_songs,
+                '7':switch_module[db_selected].average_song_title_length,
                 '8':switch_module[db_selected].get_similar_songs,
                 '9':switch_module[db_selected].get_most_frequent_tags,
                 '10':switch_module[db_selected].get_similar_songs,
@@ -110,6 +115,11 @@ def parseArgs():
 
 
 def printWelcomeInformation():
+
+    """Prints pretty welcome information for the user
+    to understand how this NoSQL tutorial will work.
+    """
+
     print('Welcome to the NoSQL tutorial')
     print('-----------------------------')
     sleep(1)
@@ -127,6 +137,17 @@ def printWelcomeInformation():
     sleep(1)
 
 def str2bool(b):
+
+    """Converts a user's input to a True/False value.
+    It handles many variations of Yes/No, Y/N, etc.
+
+    Raises:
+        ArgumentTypeError: User's input cannot be interpreted as a boolean value
+
+    Returns:
+        Boolean: True/False value based on user's input
+    """
+
     if isinstance(b, bool):
         return b
     if b.lower() in ('yes', 'true', 't', 'y', '1'):

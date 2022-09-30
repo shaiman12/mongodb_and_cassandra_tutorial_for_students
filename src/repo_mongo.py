@@ -6,6 +6,12 @@ import datetime
 client,db,collection = None,None,None
 
 def setup():
+    
+    """Initialises the DB connection. The client is started locally
+    and connects to the Million Song Dataset (MSD). The collection (i.e. table) that
+    is connected to is the \'songs'\ collection 
+    """
+
     global client
     global db
     global collection
@@ -18,6 +24,12 @@ def get_similar_songs():
     pass
 
 def read_record():
+
+    """This function returns the song(s) that contain the user-selected song title
+    If there are no entities in the DB with the song title inputed, the user is promted
+    that the song is not in the DB. Otherwise, the user is shown the matching song(s) 
+    """
+
     title = input('Please input a song title\n> ')
     qry = {"title":title}
     arrTracks = []
@@ -31,6 +43,12 @@ def read_record():
         print('Song not in database')
 
 def delete_all_songs_with_tag():
+
+    """This function removes all songs that contain the user-selected tag. E.g. Rock
+    If, no entities contain this tag, the user is informed that no deletions took place.
+    Otherwise, the number of deleted rows are printed for the user to see.
+    """
+
     tag = input('Please input a tag to delete on\n> ')
     qry = {'tags':{'$elemMatch':{'$elemMatch':{'$in':[tag]}}}}
 
@@ -42,6 +60,12 @@ def delete_all_songs_with_tag():
         print('No songs with tag: ',f'\'{tag}\'')
 
 def insert_record():
+
+    """This function is a simple creation operation.
+    A user can input song and artist values, which will then joined with a unique
+    track ID and a timestamp for when the record was created. This will all then be inserted into the DB.
+    Note: Similar songs and tags are not included for simplicity sake.
+    """
     
     title = input('Please input a song title\n> ')
     artist = input('Please input the song artist\n> ')
@@ -55,6 +79,11 @@ def insert_record():
     print('Data successfully inserted with id: ', id.inserted_id)
 
 def restore_db():
+
+    """This function restores the database to the original state. That is,
+    before any deletions, insertions or updates were performed. The database will be
+    dropped and then rebuilt from scratch.
+    """
 
     user_choice = input('This operation will drop the database and restore the songs table\n'+
                     'Please confirm this operation by entering (Y)es or (N)o\n> ')
@@ -73,26 +102,31 @@ def restore_db():
 
 def tear_down():
 
+    """This function shuts the session down and disconnects any connected databases
+    """
+
     client.close()
-    id = collection.insert_one()
-    print('Data successfully inserted with id: ', id)
 
 def delete_record():
+
     """This query will allow a developer to delete all songs from a specified artist 
     The python code will ask the user to input the artist
     The query will then delete all songs from that input artist 
     """
+
     artist = input("Input artist name to delete all songs from that artist. Note this is permanent:\n> ")
     posts = collection.delete_many({"artist":artist})
     print(artist +" successfully deleted from database")
 
 def get_all_artists_beginning_with_letter():
+
     """This query will show the developer the functionality of having to use regex in certain queries
     The user will be prompted to enter a letter
     The DB will return all artists beginning with that input letter
     The query also demonstrates how to use 'distinct' functionality to show only unique arists and not repeats
     The regular expression will match all artists begginning with that input letter.
     """
+
     letter = input("Enter a single letter:\n> ")[0]
     query_string = "/^"+letter+"/"
     artists = collection.find({"artist": { '$regex': '^'+letter, '$options': 'i' }}, {}).distinct("artist")
@@ -100,6 +134,7 @@ def get_all_artists_beginning_with_letter():
         print(artist)
 
 def get_similar_songs():
+
     """This query is a more advanced query that actually runs a series of queries because of how our DB set up
     This function will ask a user to input a song name. The functions will return a series of songs that are similar
     to the song that was given by the user.
@@ -107,7 +142,8 @@ def get_similar_songs():
     The next set of queries finds all the similar song names and artists based on the track_id extracted above
     This will be output to the user in a neat format 
     """
-    title = input('Please input a song title:\n> ')
+
+    title = input('Please input a song title (case-sensitive):\n> ')
     item_count = collection.count_documents({"title":title})
     if item_count == 0:
         print('Song not in database')
@@ -134,13 +170,30 @@ def get_similar_songs():
         print('Songs similar to: ', title)
         print(tabulate(table_print, headers=['Title','Artist', 'Similarity Measure'], tablefmt="github"))
 
+def average_song_title_length():
+
+    """This function returns the average length of all the song titles
+    in this dataset, formatted to 2 decimal places. All functionality needed
+    is provided natively by MongoDB
+    """
+
+    result = collection.aggregate([
+        { '$group': { '_id': 'null', 'avg': { '$avg': { '$strLenCP': "$title" } } } } ]
+    )
+
+    avg_length = result.next()['avg']
+
+    print('Average song title length = ',round(avg_length,2),' characters')
+
 def get_most_frequent_tags():
+
     """This function runs a query that finds all the tags stored by the dataset. 
     The function ultimately returns the top 10 occuring tags/genres in the dataset
     Because of the way the dataset is structured only one query is used here and the rest is supplemented by 
     python code
     This shows how powerful the combination of NoSQL and python can be
     """
+
     all_tags = collection.find({},{"tags":1})
     tag_dict = {}
     for tagset in all_tags:

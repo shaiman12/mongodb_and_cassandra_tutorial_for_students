@@ -8,6 +8,11 @@ session = None
 clstr = None
 
 def setup():
+
+    """Initialises the DB connection. The cluster is started locally
+    and connects to the Million Song Dataset (MSD) keyspace.
+    """
+
     global session
     global clstr
     clstr=Cluster()
@@ -16,6 +21,12 @@ def setup():
 
 
 def read_record():
+
+    """This function returns the song(s) that contain the user-selected song title
+    If there are no entities in the DB with the song title inputed, the user is promted
+    that the song is not in the DB. Otherwise, the user is shown the matching song(s) 
+    """
+
     title = input('Please input a song title\n> ')
     qry=f'''
     SELECT * FROM msd.songs WHERE title = \'{title}\' ALLOW FILTERING;
@@ -32,6 +43,11 @@ def read_record():
         print(tabulate(arrTracks, headers=['Track_id','Artist', 'Timestamp', 'Title'], tablefmt="github"))
             
 def delete_all_songs_with_tag():
+
+    """This function removes all songs that contain the user-selected tag. E.g. Rock
+    If, no entities contain this tag, the user is informed that no deletions took place.
+    Otherwise, the number of deleted rows are printed for the user to see.
+    """
     
     tag = input('Please input a tag to delete on\n> ')
     qry=f'''
@@ -62,6 +78,7 @@ def delete_all_songs_with_tag():
 
 
 def get_similar_songs():
+
     """This query is a more advanced query that actually runs a series of queries because of how our DB set up
     This function will ask a user to input a song name. The functions will return a series of songs that are similar
     to the song that was given by the user.
@@ -69,7 +86,7 @@ def get_similar_songs():
     The next set of queries finds all the similar song names and artists based on the track_id extracted above
     This will be output to the user in a neat format 
     """    
-    title = input('Please input a song title (case-sensitive)\n> ')
+    title = input('Please input a song title (case-sensitive):\n> ')
 
     qry=f'''
     SELECT similars FROM msd.songs WHERE title = \'{title}\' ALLOW FILTERING;
@@ -96,6 +113,7 @@ def get_similar_songs():
         print(tabulate(table_print, headers=['Title','Artist', 'Similarity Measure'], tablefmt="github"))
 
 def delete_record():
+
     """This query will allow a developer to delete all songs from a specified artist 
     The python code will ask the user to input the artist
     The query will then delete all songs from that input artist 
@@ -104,6 +122,7 @@ def delete_record():
     1) find track ids
     2) a series of queries deleting individual tracks
     """   
+    
     artist = input("Input artist name to delete all songs from that artist. Note this permanent:\n")
     qry=f'''
     SELECT * FROM msd.songs WHERE artist = \'{artist}\' ALLOW FILTERING;
@@ -122,8 +141,32 @@ def delete_record():
             session.execute(qry)
             print("Deleted 1 row")
 
+def average_song_title_length():
+
+    """This function returns the average length of all the song titles
+    in this dataset, formatted to 2 decimal places. All functionality needed
+    is provided natively by Cassandra, however an auxillary function to find the length
+    of the song titles had to be defined.
+    """
+
+    qry='''
+    CREATE FUNCTION IF NOT EXISTS LENGTH(input text) 
+    CALLED ON NULL INPUT 
+    RETURNS int 
+    LANGUAGE java AS '
+    return input.length();';
+    '''
+    session.execute(qry)
+
+    qry=f'''
+    SELECT AVG(CAST(LENGTH(title) as float)) as AvgTitleLength FROM msd.songs;
+    '''
+    result = session.execute(qry).one()
+ 
+    print('Average song title length = ',round(result[0],2),' characters')
 
 def get_all_artists_beginning_with_letter():
+
     """This function shows you because of the data storage that cassandra offers
     certain queries cannot be run as simply as they can in vanilla SQL. 
     For example in Regular SQL to get the all artists beginning with a letter is quite a simple query
@@ -132,6 +175,7 @@ def get_all_artists_beginning_with_letter():
     We first get all unique artist names from cql and let python do the rest.
     This also highlights that simple queries run in SQL cannot be run in a NoSQL partitioned db. We cannot return distinct artists from the DB as this is not
     a request on partition key columns. Our key is track_id based"""
+    
     letter = input("Enter a single letter:\n")[0]
     qry=f'''select artist from msd.songs'''
     results = session.execute(qry)
@@ -144,12 +188,14 @@ def get_all_artists_beginning_with_letter():
         print(i)
 
 def get_most_frequent_tags():
+
     """This function runs a query that finds all the tags stored by the dataset. 
     The function ultimately returns the top 10 occuring tags/genres in the dataset
     Because of the way the dataset is structured only one query is used here and the rest is supplemented by 
     python code
     This shows how powerful the combination of NoSQL and python can be
     """
+
     qry = f'''select tags from msd.songs;'''
     results = session.execute(qry)
     tag_dict = {}
@@ -172,8 +218,15 @@ def get_most_frequent_tags():
         if count==10:
             break
     print(tabulate(table_print, headers=['Genre','Frequency'], tablefmt="github"))
+
 def insert_record():
 
+    """This function is a simple creation operation.
+    A user can input song and artist values, which will then joined with a unique
+    track ID and a timestamp for when the record was created.
+    This will all then be inserted into the DB (if it does not already exist).
+    Note: Similar songs and tags are not included for simplicity sake.
+    """
 
     title = input('Please input a song title\n> ')
     artist = input('Please input the song artist\n> ')
@@ -188,6 +241,11 @@ def insert_record():
     print(session.execute(qry).one())
     
 def restore_db():
+
+    """This function restores the database to the original state. That is,
+    before any deletions, insertions or updates were performed. The keyspace will be
+    dropped and then rebuilt from scratch.
+    """
 
     user_choice = input('This operation will drop the database and restore the songs table\n'+
                     'Please confirm this operation by entering (Y)es or (N)o\n> ')
@@ -210,8 +268,8 @@ def restore_db():
 
 def tear_down():
 
+    """This function shuts the session down and disconnects any connected clusters
+    """
+
     session.shutdown()
     clstr.shutdown()
-
-# setup()
-# get_all_artists_beginning_with_letter()

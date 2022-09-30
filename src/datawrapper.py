@@ -4,17 +4,25 @@ from pymongo import MongoClient
 from cassandra.cluster import Cluster
 
 def load_data_mongo():
+
+    """This function sets up a MongoDB client on the user's local machine.
+    If the Million Song Dataset(MSD) database has not yet been created, the data will be loaded
+    in from the raw JSON files and inserted into the database.
+    """
+
     client = MongoClient('localhost',27017)
     if('MSD' not in client.list_database_names()):
         db=client['MSD']
         collection = db['songs']
         print('Inserting Data... Please wait')
         #TODO: Test insert_many instead of insert_one
+        data_to_insert = []
         for file in os.listdir("./data/"):
             f = open('./data/' + file)
             data = json.load(f)
-            collection.insert_one(data)
+            data_to_insert.append(data)
             f.close()
+        collection.insert_many(data_to_insert)
         print('Data inserted')
     else:
         print('MSD Data already loaded')
@@ -22,6 +30,16 @@ def load_data_mongo():
 
 
 def load_data_cassandra():
+
+    """This function sets up a Cassandra cluster on the user's local machine.
+    A Cassandra session then connects to the cluster.
+    If the Million Song Dataset(MSD) keyspace has not yet been created,the MSD keyspace will be built and the
+    songs table will be made. Therafter, the data will read in from the raw JSON files and inserted into the database.
+    Note: The insertion time is longer than it ought to be, this is due to Cassandra's strong typing enforcement which
+    requires handling fine-grained type conversions, because of how the fields are stored in the raw JSON files.
+    Ideally, the field values in the JSON files should be adapted and stored permanetely in the appropriate encodings.
+    """
+
     clstr=Cluster()
     session = clstr.connect()
     data = list(clstr.metadata.keyspaces.keys())
@@ -65,6 +83,14 @@ def load_data_cassandra():
         clstr.shutdown()
 
 def helper(data):
+
+    """This auxillary function adapts the list of lists found in the Raw JSON files
+    into sets of tuples (which our Cassandra instance requires)
+
+    Returns:
+        set<tuple(a,b)>: collection type (for input to Cassandra DB)
+    """
+
     new_data = []
     for i in data:
         new_data.append(tuple(i))
