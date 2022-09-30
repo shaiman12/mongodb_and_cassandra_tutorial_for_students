@@ -16,17 +16,17 @@ query_options = '''
 To exit this program, just type \'(q)uit\'\n
 Select any of the following queries (enter the number):
 1)  Insert new song
-2)  Return whole record (based on song title)
+2)  Return song(s) (based on song title)
 3)  Return all artists beginning with inputted letter
-4)  NOT IMPLEMENTED YET
-5)  Delete all records from an artist
-6)  Get similar songs for track
-7)  Average song title length
-8)  NOT IMPLEMENTED YET
+4)  Update song entry (i.e. change title or artist name)
+5)  Delete all song by an artist
+6)  Get similar songs of a particular song
+7)  Get average song title length
+8)  Get tags of a song-artist pair
 9)  Get top 10 most popular tags 
-10) NOT IMPLEMENTED YET
+10) Add tags to a single song
 11) Delete all songs with a given tag
-12) Get similar songs for track
+12) Get all songs with a specific tag
 13) Restore database
 '''
 
@@ -67,15 +67,15 @@ def main():
     switch_function ={'1':switch_module[db_selected].insert_record,
                 '2':switch_module[db_selected].read_record,
                 '3':switch_module[db_selected].get_all_artists_beginning_with_letter,
-                '4':switch_module[db_selected].get_similar_songs,
+                '4':switch_module[db_selected].update_record,
                 '5':switch_module[db_selected].delete_record,
                 '6':switch_module[db_selected].get_similar_songs,
                 '7':switch_module[db_selected].average_song_title_length,
-                '8':switch_module[db_selected].get_similar_songs,
+                '8':switch_module[db_selected].get_tags,
                 '9':switch_module[db_selected].get_most_frequent_tags,
-                '10':switch_module[db_selected].get_similar_songs,
+                '10':switch_module[db_selected].add_tags,
                 '11':switch_module[db_selected].delete_all_songs_with_tag,
-                '12':switch_module[db_selected].get_similar_songs,
+                '12':switch_module[db_selected].get_songs_with_tag,
                 '13':switch_module[db_selected].restore_db}
 
     user_input = ''
