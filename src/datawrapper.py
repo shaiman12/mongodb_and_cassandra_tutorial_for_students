@@ -8,13 +8,14 @@ def load_data_mongo():
     if('MSD' not in client.list_database_names()):
         db=client['MSD']
         collection = db['songs']
-
+        print('Inserting Data... Please wait')
+        #TODO: Test insert_many instead of insert_one
         for file in os.listdir("./data/"):
             f = open('./data/' + file)
             data = json.load(f)
             collection.insert_one(data)
             f.close()
-        print('Song data loaded')
+        print('Data inserted')
     else:
         print('MSD Data already loaded')
     client.close()
@@ -28,26 +29,27 @@ def load_data_cassandra():
 
     if('msd' not in data):
         session = clstr.connect()
-        session.execute("create keyspace msd with replication={'class': 'SimpleStrategy', 'replication_factor' : 3};")
+        session.execute("create keyspace msd with replication={'class': 'SimpleStrategy', 'replication_factor' : 1};")
         print('Keyspace created: MSD')
         session.shutdown()
         session = clstr.connect('msd')
+
         qry= '''
-        create table songs (
-        track_id text,
-        title text,
-        artist text,
-        timestamp timestamp,
-        similars set<tuple<text,float>>,
-        tags set<tuple<text,text>>,
-        primary key(track_id)
+        CREATE TABLE songs (
+            track_id text,
+            title text,
+            artist text,
+            timestamp timestamp,
+            similars set<tuple<text,float>>,
+            tags set<tuple<text,text>>,
+            primary key(track_id)
         );'''
         session.execute(qry)
         session.encoder.mapping[tuple] = session.encoder.cql_encode_tuple
+        print('Inserting Data... Please wait')
         for file in os.listdir("./data/"):
             f = open('./data/' + file)
             data = json.load(f)
-            # qry= f'insert into msd.songs JSON \'{data}\';'
             
             session.execute(
             '''
@@ -57,7 +59,7 @@ def load_data_cassandra():
             (data['track_id'],data['title'],data['artist'],data['timestamp'],helper(data['similars']), helper(data['tags']))
             )
             
-        
+        print('Data inserted')
         session.shutdown()
         clstr.shutdown()
 
@@ -67,3 +69,4 @@ def helper(data):
         new_data.append(tuple(i))
     
     return set(new_data)
+
