@@ -377,7 +377,6 @@ def add_tags():
     '''
     result = session.execute(qry)
     
-    print(result.one())
     if result.one() is not None:
         for track in result: 
             to_update.append(track.track_id)
