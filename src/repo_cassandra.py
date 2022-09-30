@@ -74,7 +74,24 @@ def delete_record():
 
 
 def get_all_artists_beginning_with_letter():
+    """This function shows you because of the data storage that cassandra offers
+    certain queries cannot be run as simply as they can in vanilla SQL. 
+    For example in Regular SQL to get the all artists beginning with a letter is quite a simple query
+    that uses a 'like; clause. However, this cannot be done without SASII indexes which we will not demonstrate for this
+    tutorial. In order to do this query without these Secondary indices we will use python to help run the query
+    We first get all unique artist names from cql and let python do the rest.
+    This also highlights that simple queries run in SQL cannot be run in a NoSQL partitioned db. We cannot return distinct artists from the DB as this is not
+    a request on partition key columns. Our key is track_id based"""
     letter = input("Enter a single letter:\n")[0]
+    qry=f'''select artist from msd.songs'''
+    results = session.execute(qry)
+    all_beginning_with = []
+    all_beginning_with = set(all_beginning_with)
+    for result in results:
+        if result.artist.lower()[0] == letter.lower():
+            all_beginning_with.add(result.artist)
+    for i in all_beginning_with:
+        print(i)
 
 def get_most_frequent_tags():
     """This function runs a query that finds all the tags stored by the dataset. 
@@ -112,4 +129,4 @@ def tear_down():
     clstr.shutdown()
 
 setup()
-get_most_frequent_tags()
+get_all_artists_beginning_with_letter()

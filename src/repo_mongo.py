@@ -101,5 +101,3 @@ def get_most_frequent_tags():
             break
     print(tabulate(table_print, headers=['Genre','Frequency'], tablefmt="github"))
 
-setup()
-get_most_frequent_tags()

@@ -43,6 +43,7 @@ def load_data_cassandra():
         primary key(track_id)
         );'''
         session.execute(qry)
+        
         session.encoder.mapping[tuple] = session.encoder.cql_encode_tuple
         for file in os.listdir("./data/"):
             f = open('./data/' + file)
