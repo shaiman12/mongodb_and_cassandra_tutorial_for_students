@@ -377,7 +377,8 @@ def add_tags():
     '''
     result = session.execute(qry)
     
-    if len(result)>0:
+    print(result.one())
+    if result.one() is not None:
         for track in result: 
             to_update.append(track.track_id)
         for i in tags_list:
@@ -387,7 +388,6 @@ def add_tags():
             for j in tags:
                 j = tuple(j)
                 query = f'''UPDATE msd.songs SET tags = tags + {{{j}}} WHERE track_id = \'{i}\';'''
-                print(query)
                 result = session.execute(query)
     else:
         print('Error in retrieving record. Ensure song title and artist are correct.')
