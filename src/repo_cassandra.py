@@ -13,6 +13,8 @@ def setup():
     clstr=Cluster()
     session = clstr.connect('msd')
 
+
+
 def read_record():
     title = input('Please input a song title\n> ')
     qry=f'''
@@ -170,11 +172,46 @@ def get_most_frequent_tags():
         if count==10:
             break
     print(tabulate(table_print, headers=['Genre','Frequency'], tablefmt="github"))
+def insert_record():
+
+
+    title = input('Please input a song title\n> ')
+    artist = input('Please input the song artist\n> ')
+    track_id = uuid.uuid4()
+    t_stamp = datetime.datetime.now()
+    
+    qry=f'''
+    INSERT INTO msd.songs (track_id, title, artist, timestamp)
+    VALUES (\'{track_id}\', \'{title}\', \'{artist}\', \'{t_stamp}\')
+    IF NOT EXISTS;
+    '''
+    print(session.execute(qry).one())
+    
+def restore_db():
+
+    user_choice = input('This operation will drop the database and restore the songs table\n'+
+                    'Please confirm this operation by entering (Y)es or (N)o\n> ')
+    from wrapper import str2bool
+
+    if(str2bool(user_choice)):
+
+        qry=f'''
+        DROP KEYSPACE IF EXISTS msd;
+        '''
+        session.execute(qry)
+        print('DB dropped')
+        from datawrapper import load_data_cassandra
+
+        load_data_cassandra()
+        
+    else:
+        print('Operation cancelled')
+
 
 def tear_down():
 
     session.shutdown()
     clstr.shutdown()
 
-setup()
-get_all_artists_beginning_with_letter()
+# setup()
+# get_all_artists_beginning_with_letter()

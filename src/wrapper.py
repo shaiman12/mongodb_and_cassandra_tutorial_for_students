@@ -17,9 +17,9 @@ To exit this program, just type \'(q)uit\'\n
 Select any of the following queries (enter the number):
 1)  Insert new song
 2)  Return whole record (based on song title)
-3)  Return all artists beginning with inputed letter
+3)  Return all artists beginning with inputted letter
 4)  NOT IMPLEMENTED YET
-5)  Delete certain record based on artist
+5)  Delete all records from an artist
 6)  Get similar songs for track
 7)  NOT IMPLEMENTED YET
 8)  NOT IMPLEMENTED YET
