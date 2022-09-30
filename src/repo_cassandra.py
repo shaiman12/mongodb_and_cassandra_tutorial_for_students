@@ -29,7 +29,7 @@ def read_record():
         
         print(tabulate(arrTracks, headers=['Track_id','Artist', 'Timestamp', 'Title'], tablefmt="github"))
             
-def remove_all_songs_with_tag():
+def delete_all_songs_with_tag():
     
     tag = input('Please input a tag to delete on\n> ')
     qry=f'''
@@ -61,7 +61,7 @@ def remove_all_songs_with_tag():
 
 def get_similar_songs():
     
-    title = input('Please input a song title\n> ')
+    title = input('Please input a song title:\n> ')
 
     qry=f'''
     SELECT similars FROM msd.songs WHERE title = \'{title}\' ALLOW FILTERING;
@@ -86,6 +86,18 @@ def get_similar_songs():
         table_print = sorted(table_print, key=lambda tup:tup[2], reverse=True)    
         print('Songs similar to: ', title)
         print(tabulate(table_print, headers=['Title','Artist', 'Similarity Measure'], tablefmt="github"))
+
+#TODO: Implement
+def get_most_frequent_tags():
+    pass
+
+#TODO: Implement
+def get_all_artists_beginning_with_letter():
+    pass
+
+#TODO: Implement
+def delete_record():
+    pass
 
 def insert_record():
 
