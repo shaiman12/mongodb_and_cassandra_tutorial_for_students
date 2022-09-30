@@ -1,5 +1,7 @@
 from pymongo import MongoClient
 from tabulate import tabulate
+import uuid
+import datetime
 
 client,db,collection = None,None,None
 
@@ -12,8 +14,66 @@ def setup():
     db=client['MSD']
     collection = db['songs']
 
-def insert_data():
+def get_similar_songs():
+    pass
+
+def read_record():
+    title = input('Please input a song title\n> ')
+    qry = {"title":title}
+    arrTracks = []
+    for track in collection.find(qry, {"similars":0, "tags":0}):
+        arrTracks.append((track['_id'],track['track_id'],track['artist'], str(track['timestamp']), track['title']))
+        
     
+    if(len(arrTracks) != 0):
+        print(tabulate(arrTracks, headers=['_id','Track_id','Artist', 'Timestamp', 'Title'], tablefmt="github"))
+    else:
+        print('Song not in database')
+
+def delete_all_songs_with_tag():
+    tag = input('Please input a tag to delete on\n> ')
+    qry = {'tags':{'$elemMatch':{'$elemMatch':{'$in':[tag]}}}}
+
+    x = collection.delete_many(qry)
+
+    if(x!=0):
+        print(x.deleted_count, " documents deleted.")
+    else:
+        print('No songs with tag: ',f'\'{tag}\'')
+
+def insert_record():
+    
+    title = input('Please input a song title\n> ')
+    artist = input('Please input the song artist\n> ')
+    track_id = str(uuid.uuid4())
+    
+    t_stamp = datetime.datetime.now()
+
+    data = {'track_id':track_id,'title': title, 'artist':artist,'timestamp':t_stamp}
+
+    id = collection.insert_one(data)
+    print('Data successfully inserted with id: ', id.inserted_id)
+
+def restore_db():
+
+    user_choice = input('This operation will drop the database and restore the songs table\n'+
+                    'Please confirm this operation by entering (Y)es or (N)o\n> ')
+    
+    from wrapper import str2bool
+
+    if(str2bool(user_choice)):
+        
+        client.drop_database('MSD')
+        print('DB dropped')
+        from datawrapper import load_data_mongo
+
+        load_data_mongo()
+    else:
+        print('Operation cancelled')
+
+def tear_down():
+
+    client.close()
     id = collection.insert_one()
     print('Data successfully inserted with id: ', id)
 
@@ -22,7 +82,7 @@ def delete_record():
     The python code will ask the user to input the artist
     The query will then delete all songs from that input artist 
     """
-    artist = input("Input artist name to delete all songs from that artist. Note this permanent:\n")
+    artist = input("Input artist name to delete all songs from that artist. Note this is permanent:\n> ")
     posts = collection.delete_many({"artist":artist})
     print(artist +" successfully deleted from database")
 
@@ -33,7 +93,7 @@ def get_all_artists_beginning_with_letter():
     The query also demonstrates how to use 'distinct' functionality to show only unique arists and not repeats
     The regular expression will match all artists begginning with that input letter.
     """
-    letter = input("Enter a single letter:\n")[0]
+    letter = input("Enter a single letter:\n> ")[0]
     query_string = "/^"+letter+"/"
     artists = collection.find({"artist": { '$regex': '^'+letter, '$options': 'i' }}, {}).distinct("artist")
     for artist in artists:
@@ -47,13 +107,13 @@ def get_similar_songs():
     The next set of queries finds all the similar song names and artists based on the track_id extracted above
     This will be output to the user in a neat format 
     """
-    song_name = input("Enter the name of the song that you wish to find similar songs of\n")
-    item_count = collection.count_documents({"title":song_name})
+    title = input('Please input a song title:\n> ')
+    item_count = collection.count_documents({"title":title})
     if item_count == 0:
         print('Song not in database')
     else:
 
-        similars = collection.find({"title":song_name},{"similars":1})
+        similars = collection.find({"title":title},{"similars":1})
         
         tracks = []
         
@@ -71,7 +131,7 @@ def get_similar_songs():
         
         table_print  = set(table_print)
         table_print = sorted(table_print, key=lambda tup:tup[2], reverse=True)    
-        print('Songs similar to: ', song_name)
+        print('Songs similar to: ', title)
         print(tabulate(table_print, headers=['Title','Artist', 'Similarity Measure'], tablefmt="github"))
 
 def get_most_frequent_tags():

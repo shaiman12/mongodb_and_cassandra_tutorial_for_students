@@ -1,6 +1,8 @@
-
+from sqlite3 import Timestamp
 from cassandra.cluster import Cluster
 from tabulate import tabulate
+import datetime
+import uuid
 
 session = None
 clstr = None
@@ -10,6 +12,52 @@ def setup():
     global clstr
     clstr=Cluster()
     session = clstr.connect('msd')
+
+def read_record():
+    title = input('Please input a song title\n> ')
+    qry=f'''
+    SELECT * FROM msd.songs WHERE title = \'{title}\' ALLOW FILTERING;
+    '''
+    result = session.execute(qry)
+    if (result.one() is None):
+        print('Song not in database')
+    else:
+        arrTracks = []
+        for track in result:
+            
+            arrTracks.append((track.track_id,track.artist, str(track.timestamp), track.title))
+        
+        print(tabulate(arrTracks, headers=['Track_id','Artist', 'Timestamp', 'Title'], tablefmt="github"))
+            
+def delete_all_songs_with_tag():
+    
+    tag = input('Please input a tag to delete on\n> ')
+    qry=f'''
+    SELECT track_id, tags FROM msd.songs;
+    '''
+    result = session.execute(qry)
+    tracks_to_delete = []
+    
+    for track in result:
+        
+            if(track.tags is not None):
+            
+                for item in track.tags:
+                    if(tag==item[0]):
+                        tracks_to_delete.append(track.track_id)
+                        break
+    num_delete = len(tracks_to_delete)
+    if(num_delete!=0):
+        tracks_to_delete = tuple(tracks_to_delete)
+        
+        qry=f'''
+        DELETE FROM msd.songs WHERE track_id IN {tracks_to_delete};
+        '''
+        session.execute(qry)
+        print('Applied: True. Number of rows deleted: ', num_delete)
+    else:
+        print('No songs with tag: ',f'\'{tag}\'')
+
 
 def get_similar_songs():
     """This query is a more advanced query that actually runs a series of queries because of how our DB set up
