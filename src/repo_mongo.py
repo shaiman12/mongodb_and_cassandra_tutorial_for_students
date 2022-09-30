@@ -20,8 +20,6 @@ def setup():
     db=client['MSD']
     collection = db['songs']
 
-def get_similar_songs():
-    pass
 
 def read_record():
 
@@ -64,7 +62,7 @@ def insert_record():
     """This function is a simple creation operation.
     A user can input song and artist values, which will then joined with a unique
     track ID and a timestamp for when the record was created. This will all then be inserted into the DB.
-    Note: Similar songs and tags are not included for simplicity sake.
+    Notice: Similar songs and tags are not included for simplicity sake.
     """
     
     title = input('Please input a song title\n> ')

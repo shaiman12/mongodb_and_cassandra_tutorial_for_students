@@ -224,7 +224,7 @@ def insert_record():
     A user can input song and artist values, which will then joined with a unique
     track ID and a timestamp for when the record was created.
     This will all then be inserted into the DB (if it does not already exist).
-    Note: Similar songs and tags are not included for simplicity sake.
+    Notice: Similar songs and tags are not included for simplicity sake.
     """
 
     title = input('Please input a song title\n> ')
