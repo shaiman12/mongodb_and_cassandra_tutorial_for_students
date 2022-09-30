@@ -161,3 +161,81 @@ def get_most_frequent_tags():
             break
     print(tabulate(table_print, headers=['Genre','Frequency'], tablefmt="github"))
 
+def get_tags():
+    '''Retrieves a set of tags and their relevance for a given song-artist pair. The query in the function
+    bypasses the primary key by using a composite key which can also be used to uniquely 
+    identify an item. The aim of this function is to display a simple get of a collection.
+    '''
+    title = input("Enter a song title\n> ")
+    artist = input("(Optional) Enter an artist\n> ")
+    if artist == '':
+        query = {"title" : title}
+    else:
+        query = {"title" : title, "artist" : artist}
+
+    doc = collection.find(query)
+    
+    for x in doc:
+
+        print(tabulate(x['tags'],headers=['Tag','Relevance'], tablefmt="github"))
+
+ 
+    
+
+def get_songs_with_tag():
+    '''Prints a table of all songs and the (relevant artists) that are associated
+    with a particular input tag. The aim of this function is to display both a
+    large-scale search as well as how to search within nested collections.
+    '''
+    tag = input('Enter a tag you want to search with\n>')
+    songs = []
+    query = {"tags":{"$elemMatch":{"$elemMatch":{"$eq":tag}}}}
+    doc = collection.find(query)
+    for x in doc:
+        songs.append((x['title'],x['artist']))
+    print(tabulate(songs,headers=['Song','Artist'], tablefmt="github"))
+        
+    
+
+def update_record():
+    '''Updates a record's title or artist field. This is implemented as a separate
+    update as other values such as timestamp and track_id should be immutable, and
+    collection based updates are to be handled differently (see add_tags()). The aim
+    of this function is to display a simple update to non-collection based entries.
+    '''
+    song = input('Enter the title of the record you want to update\n> ')
+    artist = input('Enter the artist of the record you want to update\n> ')
+    field_type = int(input('Enter the field type you want to update: (0) title (1) artist: '))
+    new_entry = input('Enter the new value: ')
+    f = ''
+    if field_type == 0:
+            f = 'title'
+    elif field_type == 1:
+            f = 'artist'
+    query = {'artist': artist,'title' : song}
+    update = {'$set':{f:new_entry}}
+    collection.update_one(query,update)
+        
+def add_tags():
+    """Adds a list of tags (separated by ;) to a particular song by a particular artist.
+    The function will then print out the new tag set for a given record. The aim of this function
+    is to show how one can update a collection.
+    """    
+    song = input('Enter the title of the record you want to update\n> ')
+    artist = input('Enter the artist of the record you want to update\n> ')
+    tags_string = input('Enter the tags and associated relevance factor separated by a semicolon\n> ')
+    tags_list = tags_string.split(';')
+    tags = []
+    for i in tags_list:
+        t = i.split()
+        tags.append(t)
+    for i in tags:
+        collection.update_one({'artist': artist,'title' : song},{'$push':{'tags':i}})
+    query = {'artist': artist,'title' : song}
+    doc = collection.find(query)
+    print('New Tags')
+    for x in doc:
+        print(tabulate(x['tags'],headers=['Tags'],tablefmt='github'))
+
+setup()
+get_tags()

@@ -1,5 +1,6 @@
 from sqlite3 import Timestamp
 from cassandra.cluster import Cluster
+from cassandra.query import dict_factory
 from tabulate import tabulate
 import datetime
 import uuid
@@ -213,5 +214,122 @@ def tear_down():
     session.shutdown()
     clstr.shutdown()
 
-# setup()
-# get_all_artists_beginning_with_letter()
+def get_tags():
+    '''Retrieves a set of tags and their relevance for a given song-artist pair. The query in the function
+    bypasses the primary key by using a composite key which can also be used to uniquely 
+    identify an item. Since this is not an update - we do not require the primary key.
+    The aim of this function is to display a simple get of a collection. Note that if the input for artist
+    is left blank, you will receive the tags for all songs of the same name inputted 
+    '''
+    title = input("Enter a song title\n>")
+    artist = input("(Optional) Enter an artist\n>")
+    if artist != '':
+        query = f'select tags from msd.songs where title = \'{title}\' and artist = \'{artist}\' ALLOW FILTERING;'
+    else: 
+        query = f'select tags from msd.songs where title = \'{title}\' ALLOW FILTERING;'
+    results = session.execute(query)
+    arrTracks = []
+    for track in results:
+        arrTracks.append(track.tags)
+
+    if len(arrTracks)>=1:
+        print(tabulate(arrTracks[0], headers=['Tags','Relevance'], tablefmt="github"))
+    else:
+        print('Song not found.')
+
+def get_songs_with_tag():
+    '''Prints a table of all songs and the (relevant artists) that are associated
+    with a particular input tag. The aim of this function is to display how nested
+    collections can be traversed using Cassandra and Python. We do this by getting
+    all tags from the Database and then use python to filter the collection as this
+    query is impossible to perform in Cassandra (to our knowledge).
+    '''
+    tag = input('Please input a tag you want to search with\n> ')
+    qry='''
+    SELECT artist,title, tags FROM msd.songs;
+    '''
+    result = session.execute(qry)
+    tracks = []
+    
+    for track in result:
+        if(track.tags is not None):
+           
+            for item in track.tags:
+                    if (tag == item[0]):
+                        tracks.append((track.title,track.artist))
+                        break
+    if len(tracks)>0:
+        print(tabulate(tracks, headers=['Song','Artist'], tablefmt="github"))
+    else: print('No songs with that tag.')
+
+def update_record():
+    '''Updates a record's title or artist field. This is implemented as a separate
+    update as other values such as timestamp and track_id should be immutable, and
+    collection based updates are to be handled differently (see add_tags()). The aim
+    of this function is to display a simple update to non-collection based entries. Unlike
+    with MongoDB, we cannot perform an update without involving the primary key. As such
+    We first fetch the list of relevant track IDs (the primary key) for the update by using song title 
+    and artist. Only then do we perform the update.
+    '''
+    duplicates = []
+    title = input('Enter the title of the record you want to update\n>')
+    artist = input('Enter the artist of the record you want to update\n>')
+    field_type = int(input('Enter the field type you want to update: (0) title (1) artist: '))
+    new_entry = input('Enter the new value: ')
+    f = ''
+    if field_type == 0:
+            f = 'title'
+    elif field_type == 1:
+            f = 'artist'
+    qry=f'''
+    SELECT track_id FROM msd.songs WHERE title = \'{title}\' AND artist = \'{artist}\' ALLOW FILTERING;
+    '''
+    result = session.execute(qry)
+    for track in result: 
+        duplicates.append(track.track_id)
+    if len(duplicates)>0:
+        for i in duplicates:
+            query = f'UPDATE msd.songs SET {f} = \'{new_entry}\' WHERE track_id = \'{i}\';'
+            result = session.execute(query)
+    else: print('Error in retrieving record. Ensure song title and artist are correct.')
+   
+    # for i in result: print(i)
+
+def add_tags():
+    """Adds a list of tags (separated by ;) to a particular song by a particular artist.
+    The function will then print out the new tag set for a given record. The aim of this function
+    is to show how one can update a collection. As with the update_records() function, we again
+    use title and artist to retrieve the relevant primary key which we then use in the update.
+    """    
+    to_update = []
+    title = input('Enter the title of the record you want to update\n>')
+    artist = input('Enter the artist of the record you want to update\n>')
+    tags_string = input('Enter the tags and associated relevance factor separated by a semicolon\n>')
+    tags_list = tags_string.split(';')
+    tags = []
+    qry=f'''
+    SELECT track_id FROM msd.songs WHERE title = \'{title}\' AND artist = \'{artist}\' ALLOW FILTERING;
+    '''
+    result = session.execute(qry)
+    
+    if len(result)>0:
+        for track in result: 
+            to_update.append(track.track_id)
+        for i in tags_list:
+            t = i.split()
+            tags.append(t)
+        for i in to_update:
+            for j in tags:
+                j = tuple(j)
+                query = f'''UPDATE msd.songs SET tags = tags + {{{j}}} WHERE track_id = \'{i}\';'''
+                print(query)
+                result = session.execute(query)
+    else:
+        print('Error in retrieving record. Ensure song title and artist are correct.')
+        
+    
+    
+
+setup()
+add_tags()
+get_tags()
