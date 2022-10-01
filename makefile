@@ -2,7 +2,6 @@ install: venv
 	. venv/bin/activate; pip3 install -Ur requirements.txt
 
 setupUbuntu:
-	sudo systemctl enable mongod.service
 	sudo service mongod start
 	sudo systemctl enable cassandra.service
 	sudo service cassandra start
