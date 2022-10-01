@@ -47,4 +47,5 @@ echo -ne "."
 sleep 1
 echo -ne ".\e[0m\n\n"
 sleep 1
+make
 make run
