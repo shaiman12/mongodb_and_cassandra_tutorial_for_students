@@ -18,7 +18,9 @@ Cassandra and MongoDB
 
 # Installation 
 - Please run the autorun.sh script. It will install the required dependencies, Mongo and Cassandra and it will start up the program
-- 
+```sh
+./autorun.sh
+```
 
 # Queries we provide in this tutorial
 1)  Insert new song
