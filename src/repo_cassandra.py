@@ -122,7 +122,7 @@ def delete_record():
     2) a series of queries deleting individual tracks
     """   
     
-    artist = input("Input artist name to delete all songs from that artist. Note this permanent:\n")
+    artist = input("Input artist name to delete all songs from that artist. Note this is permanent:\n")
     qry=f'''
     SELECT * FROM msd.songs WHERE artist = \'{artist}\' ALLOW FILTERING;
     '''
@@ -130,6 +130,7 @@ def delete_record():
     if (result.one() is None):
         print('Artist is not in DB')
     else:
+        count = 0
         track_ids = []
         for song in result:
             track_ids.append(song.track_id)
@@ -138,7 +139,8 @@ def delete_record():
             delete from MSD.songs where track_id = \'{track_id}\' if exists;
             '''
             session.execute(qry)
-            print("Deleted 1 row")
+            count +=1
+        print("Deleted ", count, " rows")
 
 def average_song_title_length():
 
@@ -356,6 +358,7 @@ def update_record():
         for i in duplicates:
             query = f'UPDATE msd.songs SET {f} = \'{new_entry}\' WHERE track_id = \'{i}\';'
             result = session.execute(query)
+        print("Record(s) updated")
     else: print('Error in retrieving record. Ensure song title and artist are correct.')
    
 def add_tags():
@@ -367,9 +370,9 @@ def add_tags():
     """
 
     to_update = []
-    title = input('Enter the title of the record you want to update\n>')
-    artist = input('Enter the artist of the record you want to update\n>')
-    tags_string = input('Enter the tags and associated relevance factor separated by a semicolon\n>')
+    title = input('Enter the title of the record you want to update\n> ').strip()
+    artist = input('Enter the artist of the record you want to update\n> ').strip()
+    tags_string = input('Enter a tag and associated relevance factor separated by a comma.\nAdditional tags must be seperated by a semicolon\nExample: rock,67;jazz,54 ...\n> ').strip()
     tags_list = tags_string.split(';')
     tags = []
     qry=f'''
@@ -381,12 +384,13 @@ def add_tags():
         for track in result: 
             to_update.append(track.track_id)
         for i in tags_list:
-            t = i.split()
+            t = i.split(',')
             tags.append(t)
         for i in to_update:
             for j in tags:
                 j = tuple(j)
                 query = f'''UPDATE msd.songs SET tags = tags + {{{j}}} WHERE track_id = \'{i}\';'''
                 result = session.execute(query)
+        print('Updated ', len(to_update), " record(s)")
     else:
         print('Error in retrieving record. Ensure song title and artist are correct.')

@@ -195,13 +195,14 @@ def get_most_frequent_tags():
     all_tags = collection.find({},{"tags":1})
     tag_dict = {}
     for tagset in all_tags:
-        tags = tagset['tags']
-        for tag in tags:
-            name = tag[0].lower()
-            if name in tag_dict.keys():
-                tag_dict[name] = tag_dict[name]+1
-            else:
-                tag_dict[name] = 1
+        if('tags' in tagset.keys()):
+            tags = tagset['tags']
+            for tag in tags:
+                name = tag[0].lower()
+                if name in tag_dict.keys():
+                    tag_dict[name] = tag_dict[name]+1
+                else:
+                    tag_dict[name] = 1
     sorted_dict = {k: v for k, v in sorted(tag_dict.items(), key=lambda item: item[1], reverse=True)}
     count = 0
     table_print = []
@@ -271,24 +272,23 @@ def update_record():
     query = {'artist': artist,'title' : song}
     update = {'$set':{f:new_entry}}
     collection.update_one(query,update)
+    print("Record updated")
         
 def add_tags():
     """Adds a list of tags (separated by ;) to a particular song by a particular artist.
     The function will then print out the new tag set for a given record. The aim of this function
     is to show how one can update a collection.
     """    
-    song = input('Enter the title of the record you want to update\n> ')
-    artist = input('Enter the artist of the record you want to update\n> ')
-    tags_string = input('Enter the tags and associated relevance factor separated by a semicolon\n> ')
+    song = input('Enter the title of the record you want to update\n> ').strip()
+    artist = input('Enter the artist of the record you want to update\n> ').strip()
+    tags_string = input('Enter a tag and associated relevance factor separated by a comma.\nAdditional tags must be seperated by a semicolon\nExample: rock,67;jazz,54 ...\n> ').strip()
     tags_list = tags_string.split(';')
     tags = []
     for i in tags_list:
-        t = i.split()
+        t = i.split(',')
         tags.append(t)
+    
     for i in tags:
+        
         collection.update_one({'artist': artist,'title' : song},{'$push':{'tags':i}})
-    query = {'artist': artist,'title' : song}
-    doc = collection.find(query)
-    print('New Tags')
-    for x in doc:
-        print(tabulate(x['tags'],headers=['Tags'],tablefmt='github'))
+    print("Updated record")
