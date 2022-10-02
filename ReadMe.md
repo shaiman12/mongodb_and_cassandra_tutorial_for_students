@@ -39,7 +39,7 @@ Cassandra and MongoDB
 
 # Full Documentation
 Please refer to the following files for full details about how everything is run in this program. The Documentation provides detailed insights into each query and how we set up our databases. Alternatively you may view the commented python code:
-- [repo_cassandra](repo_cassandra.md) -> This is the file that runs Cassandra Queries
-- [repo_mongo](repo_mongo.md) -> This is the file that runs Mongo Queries
-- [datawrapper](datawrapper.md) -> This is the file that sets up the databases and populates them with data
-- [wrapper](wrapper.md) -> This is the file that presents the user interface for the user
+- [repo_cassandra](docs/repo_cassandra.md) -> This is the file that runs Cassandra Queries
+- [repo_mongo](docs/repo_mongo.md) -> This is the file that runs Mongo Queries
+- [datawrapper](docs/datawrapper.md) -> This is the file that sets up the databases and populates them with data
+- [wrapper](docs/wrapper.md) -> This is the file that presents the user interface for the user
