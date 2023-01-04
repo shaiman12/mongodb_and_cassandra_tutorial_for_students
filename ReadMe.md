@@ -1,4 +1,5 @@
-# Big Data Assignment 1 
+# Big Data 
+
 Shai Aarons, Jarred Fisher, Joshua Rosenthal
 
 # Introduction
